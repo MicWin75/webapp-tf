@@ -85,38 +85,3 @@ resource "null_resource" "link_monitoring" {
     }
   }
 }
-  
-data "template_file" "dash-template" {
-  template = "${file("${path.module}/dashboard.tpl")}"
-  vars = {
-    api_name = azurerm_application_insights.appi.name
-    rg_name  = data.azurerm_resource_group.wsdevops.name
-    sub_id   = var.subscription_id
-    query    = "requests | where resultCode != 200 | summarize count()"
-  }
-}
-  
-  resource "azurerm_dashboard" "my-board" {
-  name                = "<your prefix>-dasboard"
-  resource_group_name = data.azurerm_resource_group.wsdevops.name
-  location            = data.azurerm_resource_group.wsdevops.location
-  tags = {
-    source = "terraform"
-  }
-  dashboard_properties = data.template_file.dash-template.rendered
-}
-
-    EOT
-    environment = {
-      // Parameters needed to login
-      con_client_id     = var.client_id
-      con_client_secret = var.client_secret
-      con_tenant_id     = var.tenant_id
-      // Parameters needed for linking
-      inst_key          = azurerm_application_insights.appi.instrumentation_key
-      conn_str          = azurerm_application_insights.appi.connection_string
-      rg_name           = data.azurerm_resource_group.wsdevops.name
-      web_app_name      = var.web_app_name
-    }
-  }
-}
